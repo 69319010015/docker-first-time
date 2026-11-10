@@ -1,18 +1,20 @@
 const express = require('express');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 
 const app = express();
 app.use(express.json());
 
-// ดึงค่า Config จาก Environment Variables (ชี้ Host ไปที่ชื่อ Container ของ MySQL)
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'db',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'rootpassword',
-  database: process.env.DB_NAME || 'testdb',
-  waitForConnections: true,
-  connectionLimit: 10
-});
+// เชื่อมต่อ PostgreSQL ผ่าน DATABASE_URL
+// บน Render: DATABASE_URL + DB_SSL=true ถูกตั้งให้อัตโนมัติจาก Blueprint
+// ในเครื่อง (docker-compose): ใช้ DATABASE_URL และไม่ต้องเปิด SSL
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? {
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+      }
+    : {}
+);
 
 // 0. Root Endpoint (เปิด URL หลักแล้วไม่เจอ "Cannot GET /")
 app.get('/', (req, res) => {

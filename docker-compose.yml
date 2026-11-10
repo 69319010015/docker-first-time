@@ -1,15 +1,15 @@
 services:
   db:
-    image: mysql:8.0
-    container_name: mysql_db
+    image: postgres:16-alpine
+    container_name: postgres_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: testdb
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: testdb
     ports:
-      - "3306:3306"
+      - "5432:5432"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d testdb"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -21,10 +21,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DB_HOST: db
-      DB_USER: root
-      DB_PASSWORD: rootpassword
-      DB_NAME: testdb
+      DATABASE_URL: postgres://postgres:rootpassword@db:5432/testdb
     depends_on:
       db:
         condition: service_healthy

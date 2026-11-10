@@ -1,6 +1,6 @@
 # simple-backend — แบบฝึกหัดเขียน Dockerfile
 
-โปรเจกต์ตัวอย่าง Backend API (Node.js + Express) ที่เชื่อมต่อ MySQL
+โปรเจกต์ตัวอย่าง Backend API (Node.js + Express) ที่เชื่อมต่อ PostgreSQL
 สำหรับให้นักเรียนฝึกเขียน `Dockerfile` ด้วยตนเอง
 
 ## โครงสร้างโปรเจกต์
@@ -11,7 +11,7 @@ simple-backend/
 │   ├── package.json      # Dependencies
 │   └── app.js            # โค้ด Backend Express API
 ├── Dockerfile            # เฉลย (เขียนเองในห้องเรียน)
-├── docker-compose.yml    # รันคู่กับ MySQL
+├── docker-compose.yml    # รันคู่กับ PostgreSQL
 ├── render.yaml           # ตั้งค่า Deploy บน Render
 ├── .dockerignore
 ├── .gitignore
@@ -35,9 +35,9 @@ curl http://localhost:5000/api/students
 ```
 
 > หมายเหตุ: `/api/students` ทำงานได้โดยไม่ต้องมี Database
-> แต่ `/api/health` จะตอบ `error` ถ้ายังไม่ได้เชื่อมต่อ MySQL
+> แต่ `/api/health` จะตอบ `error` ถ้ายังไม่ได้เชื่อมต่อ PostgreSQL
 
-## แบบที่ B: รันคู่กับ MySQL (Docker Compose)
+## แบบที่ B: รันคู่กับ PostgreSQL (Docker Compose)
 
 ```bash
 docker compose up -d --build
@@ -52,7 +52,7 @@ docker compose up -d --build
 docker compose down
 ```
 
-## Deploy ขึ้น Render (เฉพาะ Backend ไม่มี Database)
+## Deploy ขึ้น Render (Backend + PostgreSQL)
 
 โปรเจกต์นี้พร้อม deploy เป็น Render **Docker Web Service**
 (Render จะ build จาก `Dockerfile` ให้อัตโนมัติ — ไม่ต้องติดตั้ง Docker ในเครื่อง)
@@ -74,8 +74,10 @@ git push -u origin main
 
 1. เข้า <https://render.com> แล้ว Login ด้วย GitHub
 2. กด **New → Blueprint**
-3. เลือก repo `docker-first-time` → Render อ่าน `render.yaml` แล้วสร้าง Service ให้อัตโนมัติ
+3. เลือก repo `docker-first-time` → Render อ่าน `render.yaml` แล้วสร้าง Service + Database (PostgreSQL) ให้อัตโนมัติ
 4. รอ build เสร็จ แล้วเปิด URL ที่ Render ให้มา
+
+> ⚠️ ถ้าเคย deploy Blueprint นี้ไปก่อนหน้าแล้ว: เข้าหน้า Blueprint → กด **Apply** (หรือ Sync) เพื่อให้ Render สร้าง Database ใหม่ตาม `render.yaml`
 
 > ทางเลือก (ไม่ใช้ Blueprint): **New → Web Service → Docker** → เลือก repo → ตั้ง Health Check Path เป็น `/api/students`
 
@@ -86,7 +88,8 @@ curl https://<ชื่อ-app>.onrender.com/api/students
 ```
 
 > หมายเหตุ: Free tier จะ sleep เมื่อไม่มีคนใช้งาน ~15 นาที และปลุกใช้เวลา ~30–60 วินาทีใน request แรก
-> `/api/health` จะตอบ error เพราะยังไม่มี Database (เป็นเรื่องปกติของแบบไม่มี DB)
+> ตอนนี้มี Database (PostgreSQL) แล้ว — `/api/health` จะตอบ `{"status":"ok","db_connection":"success"}`
+> Free PostgreSQL ของ Render จะหมดอายุภายใน ~30 วัน (พอเพียงสำหรับการเรียน/เดโม)
 
 ## Endpoints
 
@@ -98,10 +101,10 @@ curl https://<ชื่อ-app>.onrender.com/api/students
 
 ## Environment Variables
 
-| ตัวแปร        | ค่าเริ่มต้น     |
-| ------------- | --------------- |
-| `DB_HOST`     | `db`            |
-| `DB_USER`     | `root`          |
-| `DB_PASSWORD` | `rootpassword`  |
-| `DB_NAME`     | `testdb`        |
-| `PORT`        | `5000`          |
+| ตัวแปร         | ค่าเริ่มต้น (ในเครื่อง)              |
+| -------------- | ------------------------------------ |
+| `DATABASE_URL` | (ไม่ตั้ง = ใช้ค่า default ของ pg)   |
+| `DB_SSL`       | `false` (บน Render ตั้งเป็น `true`)  |
+| `PORT`         | `5000`                               |
+
+> บน Render: `DATABASE_URL` และ `DB_SSL=true` ถูกตั้งให้อัตโนมัติจาก `render.yaml` (ส่วน `databases`) — ไม่ต้องกรอกเอง
