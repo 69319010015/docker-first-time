@@ -14,6 +14,14 @@ const pool = mysql.createPool({
   connectionLimit: 10
 });
 
+// 0. Root Endpoint (เปิด URL หลักแล้วไม่เจอ "Cannot GET /")
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to simple-backend!',
+    endpoints: ['/api/students', '/api/health']
+  });
+});
+
 // 1. Health Check Endpoint (เช็กว่า Backend ต่อ Database ผ่านไหม)
 app.get('/api/health', (req, res) => {
   pool.query('SELECT 1 + 1 AS solution', (err, results) => {

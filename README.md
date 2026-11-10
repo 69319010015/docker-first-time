@@ -92,6 +92,7 @@ curl https://<ชื่อ-app>.onrender.com/api/students
 
 | Method | Path           | คำอธิบาย                                 |
 | ------ | -------------- | ---------------------------------------- |
+| GET    | `/`            | หน้าแรก แสดงข้อความต้อนรับ + รายการ API |
 | GET    | `/api/health`   | เช็กการเชื่อมต่อ Database                |
 | GET    | `/api/students` | คืนค่าข้อมูลตัวอย่างเป็น JSON            |
 
